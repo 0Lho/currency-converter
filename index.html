@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Конвертер валют</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* ========== ВЕСЬ CSS ЗДЕСЬ ========== */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --primary: #6c5ce7;
+            --primary-light: #a29bfe;
+            --text: #2d3436;
+            --text-light: #636e72;
+            --input-bg: rgba(255, 255, 255, 0.7);
+            --error-bg: rgba(255, 107, 107, 0.2);
+            --error-border: #ff6b6b;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-gradient: linear-gradient(135deg, #2d3436 0%, #000000 100%);
+                --glass-bg: rgba(0, 0, 0, 0.4);
+                --glass-border: rgba(255, 255, 255, 0.1);
+                --primary: #a29bfe;
+                --primary-light: #6c5ce7;
+                --text: #f5f6fa;
+                --text-light: #b2bec3;
+                --input-bg: rgba(0, 0, 0, 0.5);
+            }
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            padding: 40px 30px;
+            color: var(--text);
+            transition: all 0.3s ease;
+        }
+        
+        h1 {
+            font-weight: 600;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: rgba(255,255,255,0.9);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 15px 20px;
+            background: var(--input-bg);
+            border: 2px solid transparent;
+            border-radius: 15px;
+            font-size: 1rem;
+            color: var(--text);
+            font-family: inherit;
+            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.3);
+        }
+        
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 20px center;
+            background-size: 16px;
+        }
+        
+        .currency-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 15px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .currency-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        
+        .swap-button {
+            flex: 0 0 auto;
+            padding-bottom: 12px;
+        }
+        
+        .swap-button button {
+            width: 56px;
+            height: 56px;
+            border: none;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(5px);
+            border-radius: 50%;
+            font-size: 1.8rem;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .swap-button button:hover {
+            transform: rotate(180deg) scale(1.1);
+            background: var(--primary);
+            box-shadow: 0 0 20px var(--primary);
+        }
+        
+        #convert-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(45deg, var(--primary), var(--primary-light));
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+        }
+        
+        #convert-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(108, 92, 231, 0.6);
+        }
+        
+        #convert-btn:active {
+            transform: translateY(0);
+        }
+        
+        .result-card {
+            margin-top: 30px;
+            padding: 25px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
+            animation: slideUp 0.5s ease;
+        }
+        
+        .result-card p {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: white;
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .error {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--error-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--error-border);
+            border-radius: 15px;
+            color: #fff;
+            text-align: center;
+            animation: shake 0.5s ease;
+        }
+        
+        .loader {
+            margin-top: 20px;
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-10px); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        
+        @media (max-width: 500px) {
+            .glass-panel {
+                padding: 30px 20px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .currency-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            .swap-button {
+                align-self: center;
+                padding-bottom: 0;
+            }
+            .swap-button button {
+                width: 48px;
+                height: 48px;
+                font-size: 1.5rem;
+            }
+            .result-card p {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="glass-panel">
+            <h1>Конвертер валют</h1>
+            <p class="subtitle">Актуальные курсы с сайта Frankfurter.app</p>
+
+            <form id="converter-form">
+                <div class="form-group">
+                    <label for="amount">Сумма</label>
+                    <input type="number" id="amount" step="any" min="0" value="1" required placeholder="0.00">
+                </div>
+
+                <div class="currency-row">
+                    <div class="form-group">
+                        <label for="from-currency">Из валюты</label>
+                        <select id="from-currency" required>
+                            <option value="">Загрузка...</option>
+                        </select>
+                    </div>
+
+                    <div class="swap-button">
+                        <button type="button" id="swap-currencies" title="Поменять местами">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="to-currency">В валюту</label>
+                        <select id="to-currency" required>
+                            <option value="">Загрузка...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" id="convert-btn">Конвертировать</button>
+            </form>
+
+            <div id="result" class="result-card hidden">
+                <p id="result-text"></p>
+            </div>
+
+            <div id="error-message" class="error hidden"></div>
+            <div id="loader" class="loader hidden">⏳ Загрузка...</div>
+        </div>
+    </div>
+
+    <script>
+        // ========== ВЕСЬ JAVASCRIPT ЗДЕСЬ ==========
+        const API_BASE = 'https://api.frankfurter.app';
+        const CURRENCIES_URL = `${API_BASE}/currencies`;
+
+        const form = document.getElementById('converter-form');
+        const amountInput = document.getElementById('amount');
+        const fromSelect = document.getElementById('from-currency');
+        const toSelect = document.getElementById('to-currency');
+        const swapBtn = document.getElementById('swap-currencies');
+        const resultDiv = document.getElementById('result');
+        const resultText = document.getElementById('result-text');
+        const errorDiv = document.getElementById('error-message');
+        const loader = document.getElementById('loader');
+
+        let currencies = {};
+        let cachedRates = {};
+
+        const currencyDetails = {
+            USD: { flag: '🇺🇸', symbol: '$' },
+            EUR: { flag: '🇪🇺', symbol: '€' },
+            GBP: { flag: '🇬🇧', symbol: '£' },
+            JPY: { flag: '🇯🇵', symbol: '¥' },
+            CNY: { flag: '🇨🇳', symbol: '¥' },
+            RUB: { flag: '🇷🇺', symbol: '₽' },
+            CAD: { flag: '🇨🇦', symbol: 'C$' },
+            AUD: { flag: '🇦🇺', symbol: 'A$' },
+            CHF: { flag: '🇨🇭', symbol: 'Fr' },
+            INR: { flag: '🇮🇳', symbol: '₹' },
+            BRL: { flag: '🇧🇷', symbol: 'R$' },
+            MXN: { flag: '🇲🇽', symbol: 'Mex$' },
+            ZAR: { flag: '🇿🇦', symbol: 'R' },
+            SEK: { flag: '🇸🇪', symbol: 'kr' },
+            NOK: { flag: '🇳🇴', symbol: 'kr' },
+            DKK: { flag: '🇩🇰', symbol: 'kr' },
+            PLN: { flag: '🇵🇱', symbol: 'zł' },
+            CZK: { flag: '🇨🇿', symbol: 'Kč' },
+            HUF: { flag: '🇭🇺', symbol: 'Ft' },
+            TRY: { flag: '🇹🇷', symbol: '₺' },
+            ILS: { flag: '🇮🇱', symbol: '₪' },
+            KRW: { flag: '🇰🇷', symbol: '₩' },
+            SGD: { flag: '🇸🇬', symbol: 'S$' },
+            NZD: { flag: '🇳🇿', symbol: 'NZ$' },
+            HKD: { flag: '🇭🇰', symbol: 'HK$' },
+        };
+
+        function getCurrencyDetails(code) {
+            return currencyDetails[code] || { flag: '🏳️', symbol: '' };
+        }
+
+        function showLoader() { loader.classList.remove('hidden'); }
+        function hideLoader() { loader.classList.add('hidden'); }
+        function showError(msg) {
+            errorDiv.textContent = msg;
+            errorDiv.classList.remove('hidden');
+        }
+        function hideError() { errorDiv.classList.add('hidden'); }
+        function showResult(text) {
+            resultText.textContent = text;
+            resultDiv.classList.remove('hidden');
+        }
+        function hideResult() { resultDiv.classList.add('hidden'); }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('ru-RU', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value);
+        }
+
+        async function loadCurrencies() {
+            showLoader();
+            hideError();
+            try {
+                const resp = await fetch(CURRENCIES_URL);
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                currencies = await resp.json();
+
+                populateSelect(fromSelect, currencies);
+                populateSelect(toSelect, currencies);
+
+                if (currencies.USD && currencies.EUR) {
+                    fromSelect.value = 'USD';
+                    toSelect.value = 'EUR';
+                } else {
+                    const keys = Object.keys(currencies);
+                    if (keys.length >= 2) {
+                        fromSelect.value = keys[0];
+                        toSelect.value = keys[1];
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                showError('Не удалось загрузить список валют. Проверьте соединение.');
+                fromSelect.innerHTML = '<option value="">Ошибка</option>';
+                toSelect.innerHTML = '<option value="">Ошибка</option>';
+            } finally {
+                hideLoader();
+            }
+        }
+
+        function populateSelect(selectEl, currencyObj) {
+            selectEl.innerHTML = '';
+            const sorted = Object.entries(currencyObj).sort(([a], [b]) => a.localeCompare(b));
+
+            for (const [code, name] of sorted) {
+                const opt = document.createElement('option');
+                opt.value = code;
+                const details = getCurrencyDetails(code);
+                const flag = details.flag;
+                const symbol = details.symbol ? details.symbol + ' ' : '';
+                opt.textContent = `${flag} ${symbol}(${code}) ${name}`;
+                selectEl.appendChild(opt);
+            }
+        }
+
+        async function getRate(from, to) {
+            if (from === to) return 1;
+
+            const today = new Date().toISOString().split('T')[0];
+            if (cachedRates[today]?.[from]?.[to] !== undefined) {
+                return cachedRates[today][from][to];
+            }
+
+            const url = `${API_BASE}/latest?from=${from}&to=${to}`;
+            try {
+                const resp = await fetch(url);
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const data = await resp.json();
+                const date = data.date;
+                const rate = data.rates[to];
+
+                if (!cachedRates[date]) cachedRates[date] = {};
+                if (!cachedRates[date][from]) cachedRates[date][from] = {};
+                cachedRates[date][from][to] = rate;
+
+                return rate;
+            } catch (err) {
+                console.error(err);
+                throw new Error('Не удалось получить курс валют');
+            }
+        }
+
+        async function convert() {
+            hideError();
+            hideResult();
+
+            const amount = parseFloat(amountInput.value);
+            if (isNaN(amount) || amount <= 0) {
+                showError('Введите корректную положительную сумму');
+                return;
+            }
+
+            const from = fromSelect.value;
+            const to = toSelect.value;
+            if (!from || !to) {
+                showError('Выберите валюты');
+                return;
+            }
+
+            showLoader();
+            try {
+                const rate = await getRate(from, to);
+                const result = amount * rate;
+
+                const fromDetails = getCurrencyDetails(from);
+                const toDetails = getCurrencyDetails(to);
+                const fromSymbol = fromDetails.symbol ? fromDetails.symbol + ' ' : '';
+                const toSymbol = toDetails.symbol ? toDetails.symbol + ' ' : '';
+
+                const message = `${fromSymbol}${formatCurrency(amount)} ${from} = ${toSymbol}${formatCurrency(result)} ${to}\nКурс: 1 ${from} = ${formatCurrency(rate)} ${to}`;
+                showResult(message);
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                hideLoader();
+            }
+        }
+
+        function debounce(fn, delay) {
+            let timer;
+            return function(...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn.apply(this, args), delay);
+            };
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            convert();
+        });
+
+        swapBtn.addEventListener('click', () => {
+            const fromVal = fromSelect.value;
+            const toVal = toSelect.value;
+            if (fromVal && toVal) {
+                fromSelect.value = toVal;
+                toSelect.value = fromVal;
+                convert();
+            }
+        });
+
+        amountInput.addEventListener('input', debounce(convert, 500));
+        fromSelect.addEventListener('change', convert);
+        toSelect.addEventListener('change', convert);
+
+        loadCurrencies();
+    </script>
+</body>
+</html>
